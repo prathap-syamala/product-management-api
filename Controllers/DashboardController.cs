@@ -44,6 +44,7 @@ namespace ProductApi.Controllers
                     Price = p.Price,
                     Category = p.Category.Name
                 })
+                .Take(15)
                 .ToListAsync();
 
             return Ok(products);
