@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
 using ProductApi.DTOs.Categories;
+using ProductApi.DTOs.Category;
 using ProductApi.Services.Interfaces;
 
 namespace ProductApi.Controllers
@@ -55,6 +56,33 @@ namespace ProductApi.Controllers
 
             return Ok();
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var category = await _context.Categories
+                .Where(c => c.Id == id)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Name
+                })
+                .FirstOrDefaultAsync();
 
+            if (category == null)
+                return NotFound();
+
+            return Ok(category);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _categoryService.UpdateAsync(id, dto);
+            return NoContent();
+        }
     }
 }
