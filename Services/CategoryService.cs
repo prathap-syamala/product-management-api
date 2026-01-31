@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
 using ProductApi.DTOs.Categories;
+using ProductApi.DTOs.Category;
 using ProductApi.Models;
 using ProductApi.Services.Interfaces;
 
@@ -32,5 +33,16 @@ namespace ProductApi.Services
             _context.Categories.Add(new Category { Name = dto.Name });
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateAsync(int id, UpdateCategoryDto dto)
+        {
+            var category = await _context.Categories.FindAsync(id);
+
+            if (category == null)
+                throw new Exception("Category not found");
+
+            category.Name = dto.Name.Trim();
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

@@ -23,6 +23,10 @@ namespace ProductApi.Services
                 {
                     Id = p.Id,
                     Name = p.Name,
+                    ProductCode = p.ProductCode,
+                    Manufacturer = p.Manufacturer,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
                     Price = p.Price,
                     CategoryId = p.CategoryId,
                     CategoryName = p.Category.Name
@@ -32,13 +36,18 @@ namespace ProductApi.Services
 
         public async Task CreateAsync(CreateProductDto dto)
         {
-            _context.Products.Add(new Product
+            var product = new Product
             {
                 Name = dto.Name,
+                ProductCode = dto.ProductCode,
+                Manufacturer = dto.Manufacturer,
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl,
                 Price = dto.Price,
                 CategoryId = dto.CategoryId
-            });
+            };
 
+            _context.Products.Add(product);
             await _context.SaveChangesAsync();
         }
 
@@ -48,6 +57,10 @@ namespace ProductApi.Services
                 ?? throw new Exception("Product not found");
 
             product.Name = dto.Name;
+            product.ProductCode = dto.ProductCode;
+            product.Manufacturer = dto.Manufacturer;
+            product.Description = dto.Description;
+            product.ImageUrl = dto.ImageUrl;
             product.Price = dto.Price;
             product.CategoryId = dto.CategoryId;
 
