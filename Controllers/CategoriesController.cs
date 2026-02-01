@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
 using ProductApi.DTOs.Categories;
-using ProductApi.DTOs.Category;
 using ProductApi.Services.Interfaces;
 
 namespace ProductApi.Controllers
@@ -76,7 +75,7 @@ namespace ProductApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
+        public async Task<IActionResult> Update(int id, CreateCategoryDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

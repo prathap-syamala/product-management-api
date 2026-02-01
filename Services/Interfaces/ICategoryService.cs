@@ -1,5 +1,5 @@
 ﻿using ProductApi.DTOs.Categories;
-using ProductApi.DTOs.Category;
+
 
 namespace ProductApi.Services.Interfaces
 {
@@ -7,6 +7,6 @@ namespace ProductApi.Services.Interfaces
     {
         Task<List<CategoryResponseDto>> GetAllAsync();
         Task CreateAsync(CreateCategoryDto dto);
-        Task UpdateAsync(int id, UpdateCategoryDto dto);
+        Task UpdateAsync(int id, CreateCategoryDto dto);
     }
 }
