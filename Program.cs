@@ -8,9 +8,14 @@ using ProductApi.Models;
 using ProductApi.Security;
 using ProductApi.Services;
 using ProductApi.Services.Interfaces;
+using ProductApi.Validations;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 #region 🔹 Configuration
 
@@ -138,46 +143,13 @@ builder.Services.AddCors(options =>
 
 #endregion
 
+builder.Services.AddControllers();
+builder.Services.AddFluentValidationAutoValidation();
+
+builder.Services.AddValidatorsFromAssembly(typeof(UserValidator).Assembly);
+
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    // Apply migrations
-    context.Database.Migrate();
-
-    // Seed Roles
-    if (!context.Roles.Any())
-    {
-        context.Roles.AddRange(
-            new Role { Name = "Admin" },
-            new Role { Name = "Manager" },
-            new Role { Name = "FranchiseUser" }
-        );
-        context.SaveChanges();
-    }
-
-    // Get Admin Role safely
-    var adminRole = context.Roles.FirstOrDefault(r => r.Name == "Admin");
-    if (adminRole == null)
-    {
-        throw new Exception("Admin role seeding failed");
-    }
-
-    // Seed Admin User
-    if (!context.Users.Any())
-    {
-        context.Users.Add(new User
-        {
-            Username = "admin",
-            PasswordHash = PasswordHasher.Hash("Admin@123"),
-            RoleId = adminRole.Id
-        });
-
-        context.SaveChanges();
-    }
-}
 
 #region 🔹 Middleware Pipeline
 
