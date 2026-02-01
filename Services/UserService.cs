@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
-using ProductApi.DTOs.Users;
+using ProductApi.DTOs.User;
 using ProductApi.Models;
-using ProductApi.Services.Interfaces;
 using ProductApi.Security;
+using ProductApi.Services.Interfaces;
 
 namespace ProductApi.Services
 {
@@ -56,6 +56,32 @@ namespace ProductApi.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+       
+        public async Task DeleteAsync(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<UserResponseDto?> GetByIdAsync(int id)
+        {
+            return await _context.Users
+                .Where(u => u.Id == id)
+                .Select(u => new UserResponseDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Role = u.Role.Name,
+                    Franchises = u.UserFranchises
+                        .Select(uf => uf.Franchise.FranchiseName)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
         }
     }
 }

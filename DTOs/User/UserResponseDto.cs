@@ -1,4 +1,4 @@
-﻿namespace ProductApi.DTOs.Users
+﻿namespace ProductApi.DTOs.User
 {
     public class UserResponseDto
     {
@@ -6,8 +6,7 @@
         public string Username { get; set; }
         public string Role { get; set; }
         public List<string> Franchises { get; set; }
-        public bool IsDeleteRequested { get; set; }
-        public bool IsDeleted { get; set; }
+
 
     }
 }
