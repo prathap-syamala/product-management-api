@@ -32,7 +32,7 @@ namespace ProductApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateProductDto dto)
+        public async Task<IActionResult> Update(int id, CreateProductDto dto)
         {
             await _productService.UpdateAsync(id, dto);
             return Ok("Product updated");

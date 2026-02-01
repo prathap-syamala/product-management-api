@@ -51,7 +51,7 @@ namespace ProductApi.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(int id, UpdateProductDto dto)
+        public async Task UpdateAsync(int id, CreateProductDto dto)
         {
             var product = await _context.Products.FindAsync(id)
                 ?? throw new Exception("Product not found");
