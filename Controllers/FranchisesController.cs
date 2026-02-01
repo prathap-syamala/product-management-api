@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProductApi.DTOs.Franchise;
 using ProductApi.DTOs.Franchises;
 using ProductApi.Services;
 using ProductApi.Services.Interfaces;
