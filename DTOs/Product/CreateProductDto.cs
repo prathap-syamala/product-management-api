@@ -18,5 +18,7 @@ namespace ProductApi.DTOs.Products
         public decimal Price { get; set; }
 
         public int CategoryId { get; set; }
+        public int SubCategoryId { get; set; }
+
     }
 }
