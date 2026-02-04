@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductApi.Data;
 
@@ -11,9 +12,11 @@ using ProductApi.Data;
 namespace ProductApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260202022716_AddSubCategory")]
+    partial class AddSubCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,9 +39,6 @@ namespace ProductApi.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.ToTable("Categories");
                 });
@@ -128,14 +128,7 @@ namespace ProductApi.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("ProductCode")
-                        .IsUnique();
-
                     b.HasIndex("SubCategoryId");
-
-                    b.HasIndex("Name", "CategoryId", "SubCategoryId")
-                        .IsUnique()
-                        .HasFilter("[SubCategoryId] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
@@ -171,14 +164,11 @@ namespace ProductApi.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("Name", "CategoryId")
-                        .IsUnique();
 
                     b.ToTable("SubCategories");
                 });
