@@ -27,6 +27,7 @@ namespace ProductApi.Services
                     Id = u.Id,
                     Username = u.Username,
                     Role = u.Role.Name,
+                    Email = u.Email,
                     Franchises = u.UserFranchises
                         .Select(f => f.Franchise.FranchiseName)
                         .ToList()
@@ -40,7 +41,8 @@ namespace ProductApi.Services
             {
                 Username = dto.Username,
                 PasswordHash = PasswordHasher.Hash(dto.Password),
-                RoleId = dto.RoleId
+                RoleId = dto.RoleId,
+                Email = dto.Email
             };
 
             _context.Users.Add(user);
@@ -77,6 +79,7 @@ namespace ProductApi.Services
                     Id = u.Id,
                     Username = u.Username,
                     Role = u.Role.Name,
+                    Email = u.Email,
                     Franchises = u.UserFranchises
                         .Select(uf => uf.Franchise.FranchiseName)
                         .ToList()

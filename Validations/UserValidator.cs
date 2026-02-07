@@ -13,6 +13,9 @@ namespace ProductApi.Validations
                 .MaximumLength(100);
             RuleFor(x => x.Password)
                 .NotEmpty();
+            RuleFor(x => x.Email)
+                .NotEmpty()
+                .EmailAddress();
 
         }
     }
