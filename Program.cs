@@ -195,7 +195,8 @@ using (var scope = app.Services.CreateScope())
 
         context.Users.Add(new User
         {
-            Username = "admin",
+            Username="Admin",
+            Email="admin@gmail.com",
             PasswordHash = PasswordHasher.Hash("Admin@123"),
             RoleId = adminRole.Id
         });
