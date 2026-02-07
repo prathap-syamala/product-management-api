@@ -12,6 +12,7 @@ using ProductApi.Validations;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,7 @@ builder.Services.Configure<JwtSettings>(
 #region 🔹 Database (EF Core + SQL Server)
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 #endregion
@@ -82,7 +83,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-#endregion
+#endregion5
 
 #region 🔹 Controllers
 
