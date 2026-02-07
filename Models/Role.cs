@@ -8,7 +8,7 @@ namespace ProductApi.Models
         [Key]
         public int Id { get; set; }
 
-        [Required, MaxLength(50)]
+        [Required, MaxLength(100)]
         public string Name { get; set; }
 
         public ICollection<User> Users { get; set; }

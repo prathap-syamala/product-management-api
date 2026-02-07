@@ -17,6 +17,7 @@ namespace ProductApi.Models
 
         public int RoleId { get; set; }
         public Role Role { get; set; }
+        public string Email { get; set; }
 
         public ICollection<UserFranchise> UserFranchises { get; set; }
     }

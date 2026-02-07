@@ -1,4 +1,4 @@
-﻿using ProductApi.DTOs.Users;
+﻿using ProductApi.DTOs.User;
 
 namespace ProductApi.Services.Interfaces
 {
@@ -6,5 +6,7 @@ namespace ProductApi.Services.Interfaces
     {
         Task<List<UserResponseDto>> GetAllAsync();
         Task CreateAsync(CreateUserDto dto);
+        Task DeleteAsync(int id);
+        Task<UserResponseDto?> GetByIdAsync(int id);
     }
 }

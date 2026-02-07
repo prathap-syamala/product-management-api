@@ -22,7 +22,7 @@ namespace ProductApi.Security
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role.Name)
             };
 
@@ -42,6 +42,7 @@ namespace ProductApi.Security
                 UserId = user.Id,
                 Username = user.Username,
                 Role = user.Role.Name,
+                Email = user.Email,
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 ExpiresAt = token.ValidTo
             };

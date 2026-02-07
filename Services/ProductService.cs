@@ -29,29 +29,51 @@ namespace ProductApi.Services
                     ImageUrl = p.ImageUrl,
                     Price = p.Price,
                     CategoryId = p.CategoryId,
-                    CategoryName = p.Category.Name
+                    CategoryName = p.Category.Name,
+                    SubCategoryId = p.SubCategoryId
+
                 })
                 .ToListAsync();
         }
 
         public async Task CreateAsync(CreateProductDto dto)
         {
+            var name = dto.Name.Trim();
+
+            var exists = await _context.Products.AnyAsync(p =>
+                p.CategoryId == dto.CategoryId &&
+                p.SubCategoryId == dto.SubCategoryId &&
+                p.Name.ToLower() == name.ToLower());
+
+            if (exists)
+                throw new InvalidOperationException(
+                    "Product already exists in this category and sub-category");
+
+            var codeExists = await _context.Products.AnyAsync(p =>
+                p.ProductCode.ToLower() == dto.ProductCode.Trim().ToLower());
+
+            if (codeExists)
+                throw new InvalidOperationException("Product code already exists");
+
             var product = new Product
             {
-                Name = dto.Name,
-                ProductCode = dto.ProductCode,
-                Manufacturer = dto.Manufacturer,
+                Name = name,
+                ProductCode = dto.ProductCode.Trim(),
+                Manufacturer = dto.Manufacturer.Trim(),
                 Description = dto.Description,
                 ImageUrl = dto.ImageUrl,
                 Price = dto.Price,
-                CategoryId = dto.CategoryId
+                CategoryId = dto.CategoryId,
+                SubCategoryId = dto.SubCategoryId // ✅ FIX
             };
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(int id, UpdateProductDto dto)
+
+
+        public async Task UpdateAsync(int id, CreateProductDto dto)
         {
             var product = await _context.Products.FindAsync(id)
                 ?? throw new Exception("Product not found");
@@ -63,6 +85,7 @@ namespace ProductApi.Services
             product.ImageUrl = dto.ImageUrl;
             product.Price = dto.Price;
             product.CategoryId = dto.CategoryId;
+            product.SubCategoryId = dto.SubCategoryId;
 
             await _context.SaveChangesAsync();
         }
@@ -74,6 +97,14 @@ namespace ProductApi.Services
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<Product?> GetProductByIdAsync(int id)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.SubCategory)
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
     }
 }

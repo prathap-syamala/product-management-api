@@ -14,6 +14,8 @@ namespace ProductApi.Data
         public DbSet<Franchise> Franchises { get; set; }
         public DbSet<UserFranchise> UserFranchises { get; set; }
 
+        public DbSet<SubCategory> SubCategories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserFranchise>()
@@ -28,6 +30,27 @@ namespace ProductApi.Data
                 .HasOne(uf => uf.Franchise)
                 .WithMany(f => f.UserFranchises)
                 .HasForeignKey(uf => uf.FranchiseId);
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.SubCategory)
+                .WithMany(sc => sc.Products)
+                .HasForeignKey(p => p.SubCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Category>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<SubCategory>()
+                .HasIndex(sc => new { sc.Name, sc.CategoryId })
+                .IsUnique();
+
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => new { p.Name, p.CategoryId, p.SubCategoryId })
+                .IsUnique();
+
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.ProductCode)
+                .IsUnique();
+
         }
     }
 }

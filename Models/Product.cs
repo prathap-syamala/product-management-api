@@ -23,12 +23,12 @@ namespace ProductApi.Models
         [MaxLength(1000)]
         public string Description { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(1000)]
         [Url(ErrorMessage = "Invalid image URL")]
         public string ImageUrl { get; set; }
 
         [Required]
-        [Range(0.01, 999999)]
+        [Range(50,999999999)]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
@@ -36,5 +36,8 @@ namespace ProductApi.Models
         public int CategoryId { get; set; }
 
         public Category Category { get; set; }
+        public int? SubCategoryId { get; set; }
+        public SubCategory SubCategory { get; set; }
+
     }
 }

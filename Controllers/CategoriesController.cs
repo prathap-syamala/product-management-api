@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProductApi.Data;
 using ProductApi.DTOs.Categories;
-using ProductApi.DTOs.Category;
 using ProductApi.Services.Interfaces;
 
 namespace ProductApi.Controllers
@@ -14,12 +11,10 @@ namespace ProductApi.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-        private readonly AppDbContext _context;
 
-        public CategoriesController(ICategoryService categoryService,AppDbContext context)
+        public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
-            _context = context;
         }
 
         [HttpGet]
@@ -27,62 +22,78 @@ namespace ProductApi.Controllers
         {
             return Ok(await _categoryService.GetAllAsync());
         }
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateCategoryDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
-            await _categoryService.CreateAsync(dto);
-            return Ok("Category created");
-        }
-        [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var category = await _context.Categories
-                .Include(c => c.Products)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (category == null)
-                return NotFound();
-
-            if (category.Products.Any())
-                return BadRequest(new { error = "Products exist under this category" });
-
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
-
-            return Ok();
-        }
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetCategoryById(int id)
         {
-            var category = await _context.Categories
-                .Where(c => c.Id == id)
-                .Select(c => new
-                {
-                    c.Id,
-                    c.Name
-                })
-                .FirstOrDefaultAsync();
+            var category = await _categoryService.GetByIdAsync(id);
 
             if (category == null)
-                return NotFound();
+                return NotFound(new { error = "Category not found" });
 
             return Ok(category);
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
+        [HttpPost]
+        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _categoryService.UpdateAsync(id, dto);
-            return NoContent();
+            try
+            {
+                var createdCategory = await _categoryService.CreateAsync(dto);
+
+                return CreatedAtAction(
+                    nameof(GetCategoryById),
+                    new { id = createdCategory.Id },
+                    createdCategory
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                // 🔴 Duplicate category
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CreateCategoryDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                await _categoryService.UpdateAsync(id, dto);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { error = "Category not found" });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            try
+            {
+                await _categoryService.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { error = "Category not found" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

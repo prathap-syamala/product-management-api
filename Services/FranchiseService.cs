@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductApi.Data;
-using ProductApi.DTOs.Franchise;
 using ProductApi.DTOs.Franchises;
 using ProductApi.Models;
 using ProductApi.Services.Interfaces;

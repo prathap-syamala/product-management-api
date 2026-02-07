@@ -37,6 +37,9 @@ namespace ProductApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.ToTable("Categories");
                 });
 
@@ -97,8 +100,8 @@ namespace ProductApi.Migrations
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Manufacturer")
                         .IsRequired()
@@ -118,9 +121,21 @@ namespace ProductApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("SubCategoryId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("ProductCode")
+                        .IsUnique();
+
+                    b.HasIndex("SubCategoryId");
+
+                    b.HasIndex("Name", "CategoryId", "SubCategoryId")
+                        .IsUnique()
+                        .HasFilter("[SubCategoryId] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
@@ -135,12 +150,37 @@ namespace ProductApi.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("ProductApi.Models.SubCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("Name", "CategoryId")
+                        .IsUnique();
+
+                    b.ToTable("SubCategories");
                 });
 
             modelBuilder.Entity("ProductApi.Models.User", b =>
@@ -150,6 +190,10 @@ namespace ProductApi.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -189,6 +233,24 @@ namespace ProductApi.Migrations
                 {
                     b.HasOne("ProductApi.Models.Category", "Category")
                         .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProductApi.Models.SubCategory", "SubCategory")
+                        .WithMany("Products")
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("SubCategory");
+                });
+
+            modelBuilder.Entity("ProductApi.Models.SubCategory", b =>
+                {
+                    b.HasOne("ProductApi.Models.Category", "Category")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -239,6 +301,11 @@ namespace ProductApi.Migrations
             modelBuilder.Entity("ProductApi.Models.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("ProductApi.Models.SubCategory", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ProductApi.Models.User", b =>

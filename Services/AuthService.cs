@@ -22,7 +22,7 @@ namespace ProductApi.Services
         {
             var user = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Username == dto.Username);
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             if (user == null || !PasswordHasher.Verify(dto.Password, user.PasswordHash))
                 return null;

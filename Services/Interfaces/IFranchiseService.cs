@@ -1,4 +1,4 @@
-﻿using ProductApi.DTOs.Franchise;
+﻿
 using ProductApi.DTOs.Franchises;
 
 namespace ProductApi.Services.Interfaces
