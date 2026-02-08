@@ -156,11 +156,8 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
@@ -206,5 +203,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 #endregion
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    app.Urls.Add($"http://*:{port}");
+}
 
 app.Run();
