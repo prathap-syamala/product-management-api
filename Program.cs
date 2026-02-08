@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -10,22 +10,22 @@ using ProductApi.Services;
 using ProductApi.Services.Interfaces;
 using ProductApi.Validations;
 using System.Text;
+using FluentValidation;
 using FluentValidation.AspNetCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
-/* ================= CONFIG ================= */
 
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings"));
 
-/* ================= DATABASE ================= */
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-/* ================= SERVICES ================= */
+
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -35,21 +35,20 @@ builder.Services.AddScoped<IFranchiseService, FranchiseService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ISubCategoryService, SubCategoryService>();
+
+
 builder.Services.AddScoped<JwtTokenGenerator>();
 
-/* ================= CONTROLLERS & VALIDATION ================= */
-
-builder.Services.AddControllers();
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
-
-/* ================= AUTH ================= */
 
 var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
-    .Get<JwtSettings>()!;
+    .Get<JwtSettings>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -58,23 +57,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
+
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtSettings.Secret))
     };
 });
 
+
 builder.Services.AddAuthorization();
 
-/* ================= SWAGGER ================= */
+
+builder.Services.AddControllers();
+
+
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "PMS API",
-        Version = "v1"
+        Version = "v1",
+        Description = "Product Management System API"
     });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -83,10 +89,10 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token as: Bearer {token}"
     });
 
-    // ✅ CORRECT AddSecurityRequirement
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -103,51 +109,49 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-/* ================= CORS ================= */
+
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
+
+
+builder.Services.AddFluentValidationAutoValidation();
+
+builder.Services.AddValidatorsFromAssembly(typeof(UserValidator).Assembly);
+
 var app = builder.Build();
 
-/* ================= MIDDLEWARE ================= */
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-// Swagger enabled in production (for now)
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PMS API v1");
-    c.RoutePrefix = "swagger";
-});
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+
 app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-/* ================= ROUTES ================= */
-
 app.MapControllers();
-
-// Root health endpoint
-app.MapGet("/", () => "Product Management API is running 🚀");
-
-/* ================= DB MIGRATION & SEED ================= */
 
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
     context.Database.Migrate();
 
+    // Seed Roles
     if (!context.Roles.Any())
     {
         context.Roles.AddRange(
@@ -158,14 +162,15 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 
+    // Seed Admin User
     if (!context.Users.Any())
     {
         var adminRole = context.Roles.First(r => r.Name == "Admin");
 
         context.Users.Add(new User
         {
-            Username = "Admin",
-            Email = "admin@gmail.com",
+            Username="Admin",
+            Email="admin@gmail.com",
             PasswordHash = PasswordHasher.Hash("Admin@123"),
             RoleId = adminRole.Id
         });
@@ -173,9 +178,6 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 }
-
-/* ================= RAILWAY PORT ================= */
-
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
 {
