@@ -14,18 +14,18 @@ using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-/* ===================== CONFIG ===================== */
+/* ================= CONFIG ================= */
 
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings"));
 
-/* ===================== DATABASE ===================== */
+/* ================= DATABASE ================= */
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-/* ===================== SERVICES ===================== */
+/* ================= SERVICES ================= */
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -37,17 +37,17 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ISubCategoryService, SubCategoryService>();
 builder.Services.AddScoped<JwtTokenGenerator>();
 
-/* ===================== CONTROLLERS & VALIDATION ===================== */
+/* ================= CONTROLLERS & VALIDATION ================= */
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssembly(typeof(UserValidator).Assembly);
+builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
-/* ===================== AUTH ===================== */
+/* ================= AUTH ================= */
 
 var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
-    .Get<JwtSettings>();
+    .Get<JwtSettings>()!;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
@@ -67,7 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-/* ===================== SWAGGER ===================== */
+/* ================= SWAGGER ================= */
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -86,20 +86,24 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header
     });
 
+    // ✅ CORRECT AddSecurityRequirement
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiReference
+            new OpenApiSecurityScheme
             {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
             },
-            Array.Empty<string>()
+            new string[] {}
         }
     });
 });
 
-/* ===================== CORS ===================== */
+/* ================= CORS ================= */
 
 builder.Services.AddCors(options =>
 {
@@ -113,10 +117,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-/* ===================== MIDDLEWARE ===================== */
+/* ================= MIDDLEWARE ================= */
 
 app.UseMiddleware<ExceptionMiddleware>();
 
+// Swagger enabled in production (for now)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -129,14 +134,14 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-/* ===================== ROUTES ===================== */
+/* ================= ROUTES ================= */
 
 app.MapControllers();
 
-// Root health check (VERY IMPORTANT)
+// Root health endpoint
 app.MapGet("/", () => "Product Management API is running 🚀");
 
-/* ===================== DB MIGRATION & SEED ===================== */
+/* ================= DB MIGRATION & SEED ================= */
 
 using (var scope = app.Services.CreateScope())
 {
@@ -156,6 +161,7 @@ using (var scope = app.Services.CreateScope())
     if (!context.Users.Any())
     {
         var adminRole = context.Roles.First(r => r.Name == "Admin");
+
         context.Users.Add(new User
         {
             Username = "Admin",
@@ -163,11 +169,12 @@ using (var scope = app.Services.CreateScope())
             PasswordHash = PasswordHasher.Hash("Admin@123"),
             RoleId = adminRole.Id
         });
+
         context.SaveChanges();
     }
 }
 
-/* ===================== RAILWAY PORT ===================== */
+/* ================= RAILWAY PORT ================= */
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
