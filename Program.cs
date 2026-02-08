@@ -25,7 +25,7 @@ builder.Services.Configure<JwtSettings>(
 
 #endregion
 
-#region 🔹 Database (EF Core + SQL Server)
+#region 🔹 Database (EF Core + PostgreSQL)
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
@@ -83,7 +83,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-#endregion5
+#endregion
 
 #region 🔹 Controllers
 
@@ -145,7 +145,6 @@ builder.Services.AddCors(options =>
 
 #endregion
 
-builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddValidatorsFromAssembly(typeof(UserValidator).Assembly);
